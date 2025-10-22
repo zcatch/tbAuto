@@ -3,7 +3,12 @@ import random
 import re
 import cv2
 import numpy as np
-import ddddocr
+try:
+    import ddddocr
+except ImportError as e:
+    print(f"警告: ddddocr导入失败: {e}")
+    print("OCR功能将不可用，但不影响其他功能")
+    ddddocr = None
 
 
 def check_chars_exist(text, chars=None):
@@ -58,6 +63,10 @@ def find_button(image, btn_path, region=None):
 
 
 def find_text_position(image, text):
+    if ddddocr is None:
+        print("警告: ddddocr不可用，无法进行OCR文字识别")
+        return None
+    
     ocr = ddddocr.DdddOcr(show_ad=False)
     ocr_result = ocr.classification(image)
     # 将 OCR 结果按行解析

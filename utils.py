@@ -3,17 +3,12 @@ import random
 import re
 import cv2
 import numpy as np
-try:
-    import ddddocr
-except ImportError as e:
-    print(f"警告: ddddocr导入失败: {e}")
-    print("OCR功能将不可用，但不影响其他功能")
-    ddddocr = None
+import ddddocr
 
 
 def check_chars_exist(text, chars=None):
     if chars is None:
-        chars = ["拉好友", "抢红包", "搜索兴趣商品下单", "买精选商品", "全场3元3件", "固定入口", "农场小游戏", "砸蛋", "大众点评", "蚂蚁新村", "消消乐", "玩一玩", "3元抢3件包邮到家", "拍一拍", "1元抢爆款好货", "拉1人助力", "玩消消乐", "下单即得", "添加签到神器", "下单得肥料", "88VIP", "邀请好友", "好货限时直降", "连连消", "下单即得", "拍立淘", "玩任意游戏", "首页回访", "百亿外卖", "玩趣味游戏得大额体力", "天猫积分换体力", "头条刷热点", "一淘签到"]
+        chars = ["拉好友", "抢红包", "搜索兴趣商品下单", "买精选商品", "全场3元3件", "固定入口", "农场小游戏", "砸蛋", "大众点评", "蚂蚁新村", "消消乐", "玩一玩", "3元抢3件包邮到家", "拍一拍", "1元抢爆款好货", "拉1人助力", "玩消消乐", "下单即得", "添加签到神器", "下单得肥料", "88VIP", "邀请好友", "好货限时直降", "连连消", "下单即得", "拍立淘", "玩任意游戏", "首页回访", "百亿外卖", "玩趣味游戏得大额体力", "天猫积分换体力", "头条刷热点", "一淘签到", "每拉"]
     for char in chars:
         if char in text:
             return True
@@ -63,10 +58,6 @@ def find_button(image, btn_path, region=None):
 
 
 def find_text_position(image, text):
-    if ddddocr is None:
-        print("警告: ddddocr不可用，无法进行OCR文字识别")
-        return None
-    
     ocr = ddddocr.DdddOcr(show_ad=False)
     ocr_result = ocr.classification(image)
     # 将 OCR 结果按行解析
@@ -145,33 +136,24 @@ def task_loop(d, func):
             time.sleep(random.uniform(1, 5))
         else:
             time.sleep(5)
-    try_count = 0
     print("开始返回任务页面")
     while True:
-        if func():
-            print("当前是任务列表画面，不能继续返回")
-            break
+        temp_package, temp_activity = get_current_app(d)
+        if temp_package is None or temp_activity is None:
+            continue
+        print(f"{temp_package}--{temp_activity}")
+        if "com.taobao.taobao" not in temp_package:
+            print("回到淘宝APP")
+            d.app_start("com.taobao.taobao", stop=False)
+            time.sleep(3)
         else:
-            close_applet = d(className="android.widget.TextView", resourceId="com.taobao.taobao:id/back_home_btn", description="返回首页")
-            if close_applet.exists:
-                print("点击小程序关闭按钮")
-                close_applet.click()
-                time.sleep(3)
-                continue
-            bt_close = d(resourceId="android:id/button2", text="取消")
-            if bt_close.exists:
-                bt_close.click()
-                time.sleep(2)
-                continue
-            d.press("back")
-            time.sleep(0.2)
-            try_count += 1
-            print(f"点击后退，{try_count}次")
-            if try_count > 10:
+            if func():
+                print("当前是任务列表画面，不能继续返回")
                 break
-# img = cv2.imread("./img/screenshot.png")
-# pt = find_button(img, "./img/fish_back.png", (0, 0, 300, 500))
-# print(pt)
+            else:
+                print("点击后退")
+                d.press("back")
+                time.sleep(0.3)
 
 
 def close_xy_dialog(d):

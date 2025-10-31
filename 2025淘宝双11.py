@@ -105,49 +105,61 @@ to_11()
 finish_count = 0
 time1 = time.time()
 while True:
-    print("开始查找任务。。。")
-    get_btn = d(className="android.widget.Button", text="立即领取")
-    if get_btn.exists:
-        get_btn.click()
-        time.sleep(3)
-    to_btn = d(className="android.widget.Button", text="去完成")
-    if to_btn.exists:
-        need_click_view = None
-        need_click_index = 0
-        task_name = None
-        for index, view in enumerate(to_btn):
-            text_div = view.sibling(className="android.view.View", instance=0).child(className="android.widget.TextView", instance=0)
-            if text_div.exists:
-                if check_chars_exist(text_div.get_text()):
-                    continue
-                task_name = text_div.get_text()
-                if task_name in have_clicked:
-                    continue
-                need_click_index = index
-                need_click_view = view
-                break
-        if need_click_view:
-            print("点击按钮", task_name)
-            if task_name not in have_clicked:
-                have_clicked.append(task_name)
-            # need_click_view.click()
-            d.click(random.randint(need_click_view.bounds()[0] + 10, need_click_view.bounds()[2] - 10), random.randint(need_click_view.bounds()[1] + 10, need_click_view.bounds()[3] - 10))
-            time.sleep(4)
-            search_view = d(className="android.view.View", text="搜索有福利")
-            if search_view.exists:
-                d(className="android.widget.EditText", instance=0).send_keys("笔记本电脑")
-                d(className="android.widget.Button", text="搜索").click()
-                in_search = True
+    try:
+        print("开始查找任务。。。")
+        get_btn = d(className="android.widget.Button", text="立即领取")
+        if get_btn.exists:
+            get_btn.click()
+            time.sleep(3)
+        to_btn = d(className="android.widget.Button", text="去完成")
+        if to_btn.exists:
+            need_click_view = None
+            need_click_index = 0
+            task_name = None
+            for index, view in enumerate(to_btn):
+                text_div = view.sibling(className="android.view.View", instance=0).child(className="android.widget.TextView", instance=0)
+                if text_div.exists:
+                    if check_chars_exist(text_div.get_text()):
+                        continue
+                    task_name = text_div.get_text()
+                    if task_name in have_clicked:
+                        continue
+                    need_click_index = index
+                    need_click_view = view
+                    break
+            if need_click_view:
+                print("点击按钮", task_name)
+                if task_name not in have_clicked:
+                    have_clicked.append(task_name)
+                # need_click_view.click()
+                d.click(random.randint(need_click_view.bounds()[0] + 10, need_click_view.bounds()[2] - 10), random.randint(need_click_view.bounds()[1] + 10, need_click_view.bounds()[3] - 10))
                 time.sleep(4)
-            operate_task()
-        else:
-            break
-    time.sleep(4)
+                open_btn = d(className="android.widget.Button", resourceIdMatches=r"android:id/.*", textMatches="打开|允许")
+                if open_btn.exists:
+                    open_btn.click()
+                    time.sleep(4)
+                search_view = d(className="android.view.View", text="搜索有福利")
+                if search_view.exists:
+                    d(className="android.widget.EditText", instance=0).send_keys("笔记本电脑")
+                    d(className="android.widget.Button", text="搜索").click()
+                    in_search = True
+                    time.sleep(4)
+                operate_task()
+            else:
+                break
+        time.sleep(5)
+    except Exception as e:
+        print("出现异常，继续下一轮", str(e))
 print(f"共自动化完成{finish_count}个任务")
 temp_btn = d(className="android.widget.TextView", text="做任务赚体力")
 if temp_btn.exists:
     print("点击缩回弹框")
-    temp_btn.right(className="android.widget.Button").click()
+    try:
+        close_btn = temp_btn.right(className="android.widget.Button")
+        if close_btn.exists:
+            close_btn.click()
+    except Exception:
+        d.shell("input tap 500 300")
 time.sleep(4)
 while True:
     print("开始跳一跳。。。")
@@ -155,6 +167,14 @@ while True:
     if share_view.exists:
         print("存在分享给好友立得体力弹框，关闭它")
         close_btn = d.xpath('//android.view.View[@text="分享给好友立得体力" or @text="去抢频道额外优惠"]/preceding-sibling::android.view.View[3]')
+        if close_btn.exists:
+            print("关闭按钮存在，关闭它")
+            close_btn.click()
+            time.sleep(3)
+    dialog_view2 = d(className="android.view.View", text="去赚体力")
+    if dialog_view2.exists:
+        print("存在去赚体力弹框，关闭它")
+        close_btn = d.xpath('//android.view.View[@text="去赚体力"]/preceding-sibling::android.view.View[5]')
         if close_btn.exists:
             print("关闭按钮存在，关闭它")
             close_btn.click()
